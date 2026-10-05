@@ -332,3 +332,5 @@ PWA用テスト：`node --test tests/pwa.test.cjs`（3件）。ルール・入�
 コピーはClipboard APIを優先し、利用できなければ旧ブラウザのコピー処理、それも失敗した場合は選択できるURL欄を表示します。保存データ・音声・本編進行には触れません。`share.js`に共有処理を分離し、タイトルのみから利用します。LINEのリンク形式は[公式ガイド](https://developers.line.biz/ja/docs/line-social-plugins/install-guide/using-line-share-buttons/)に合わせています。
 
 共有の確認：既存テストと`tests/share.test.cjs`はすべて成功。ChromeのPC・844×390タッチ操作で独自メニュー、実際のClipboard API、SNSリンクの内容、標準共有APIの代替によるキャンセル、既存の本編開始を確認済みです。OS共有シートの操作、LINE実機での送信、Xの投稿確定は行っていません。
+
+GitHub管理テスト
