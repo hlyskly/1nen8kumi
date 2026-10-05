@@ -128,3 +128,6 @@ h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.15; letter-spacing: .13
 #share-message { min-height: 1.5em; margin: 12px 0; font-size: 13px; }
 #share-url { width: 100%; margin-bottom: 12px; }
 @media (orientation: landscape) and (max-height: 600px) { .share-menu { padding: 14px; } .share-menu h2 { font-size: 18px; margin-bottom: 10px; } .share-menu button, .share-menu a { padding: 8px 12px; font-size: 13px; } #share-message { margin: 8px 0; } }
+
+/* GitHub Pagesの自動反映確認後に削除する一時表示。 */
+.pages-test-label { position: absolute; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom)); margin: 0; color: #aaa; font-size: 10px; line-height: 1.2; pointer-events: none; }
