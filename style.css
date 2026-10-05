@@ -1,0 +1,130 @@
+:root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; color: #f2f2f2; background: #000; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 24px; }
+button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+[hidden] { display: none !important; }
+.game-shell { width: min(1100px, 100%); }
+.topbar { display: flex; align-items: center; gap: 20px; padding: 14px 2px 18px; }
+.brand { font-size: 22px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
+.brand span { font-size: 11px; font-weight: 500; margin-left: 12px; letter-spacing: .1em; color: #657574; }
+.quiet-button { margin-left: auto; background: #171717; border: 1px solid #777; border-radius: 5px; padding: 8px 12px; font-size: 12px; color: #f2f2f2; }
+.viewport { position: relative; overflow: hidden; border: 1px solid #555; border-radius: 8px; box-shadow: 0 16px 45px #25372b12; background: #dfe6d9; aspect-ratio: 960 / 440; container-type: inline-size; }
+canvas { display: block; width: 100%; height: 100%; }
+.class-plates { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.class-plate-label { position: absolute; width: 9.375%; height: 4.716%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 1.458333cqw; font-weight: 700; line-height: 1; color: #292e2e; white-space: nowrap; }
+.overlay { position: absolute; inset: 0; background: #0008; display: grid; place-items: center; padding: 14px; overflow: auto; }
+.card { background: #171717; border: 1px solid #666; border-radius: 8px; padding: 24px 34px; width: min(540px, 100%); text-align: center; box-shadow: 0 12px 40px #172e3530; }
+.eyebrow { font-size: 10px; letter-spacing: .16em; margin: 0 0 8px; color: #bdbdbd; }
+h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.15; letter-spacing: .13em; margin: 8px 0 14px; }
+#overlay-title { font-size: var(--help-title-size, clamp(30px, 4.4vw, 48px)); }
+#overlay-body p { font-size: var(--help-body-size, 13px); }
+.card p { font-size: 13px; line-height: 1.7; margin: 9px 0; }
+.card .small { font-size: 11px; color: #bdbdbd; }
+.card .keys { font-size: 11px; border-top: 1px solid #555; padding-top: 9px; }
+.primary-button { width: 100%; background: #ededed; color: #171717; border: 0; border-radius: 4px; padding: 12px 20px; margin-top: 10px; font-size: 14px; font-weight: 700; }
+.primary-button span { float: right; }
+.bottom-bar { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding-top: 16px; }
+.controls { display: flex; gap: 8px; flex-shrink: 0; }
+.control-button { background: #1a1a1a; border: 1px solid #777; border-bottom-width: 3px; border-radius: 7px; width: 64px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #f2f2f2; font-size: 20px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.control-button span { font-size: 9px; }
+.control-button.pressed { background: #393939; transform: translateY(2px); border-bottom-width: 1px; }
+.debug { position: absolute; top: 10px; left: 10px; padding: 10px 12px; background: #152423e8; color: #e0f7b6; font: 12px/1.7 monospace; white-space: pre-line; pointer-events: none; border-radius: 4px; }
+.debug-controls { max-height: calc(100% - 20px); overflow-y: auto; position: absolute; top: 10px; right: 10px; width: min(330px, 42%); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px; background: #152423e8; color: #e0f7b6; font: 11px/1.4 monospace; border-radius: 4px; }
+.debug-controls select, .debug-controls button { max-width: 100%; font: inherit; padding: 5px; }
+.debug-controls span { width: 100%; }
+.portrait-notice { display: none; }
+@media (max-width: 700px) { body { padding: 10px; } .topbar { padding: 8px 0 10px; gap: 10px; } .brand { font-size: 18px; } .brand span { display: none; } .bottom-bar { gap: 8px; padding-top: 9px; } .control-button { width: 58px; height: 54px; } .card { padding: 16px 22px; } }
+@media (orientation: landscape) and (max-height: 600px) {
+  body { padding: max(5px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+  .game-shell { width: min(100%, calc((100svh - 104px) * 960 / 440)); }
+  .topbar { padding: 2px 0 6px; gap: 10px; height: 32px; }
+  .brand { font-size: 17px; } .brand span { display: none; }
+  .quiet-button { padding: 4px 9px; font-size: 10px; }
+  .bottom-bar { padding-top: 6px; gap: 8px; }
+  .control-button { width: 62px; height: 52px; } .controls { gap: 6px; }
+  .overlay { padding: 5px; } .card { padding: 9px 20px; width: min(490px, 96%); }
+  #overlay-title { font-size: var(--help-mobile-title-size, 28px); }
+  #overlay-body p { font-size: var(--help-mobile-body-size, 11px); }
+  h1 { font-size: 28px; margin: 3px 0 5px; } .eyebrow { font-size: 9px; margin-bottom: 3px; }
+  .card p { font-size: 11px; margin: 4px 0; line-height: 1.4; } .card .small, .card .keys { font-size: 9px; }
+  .card .keys { padding-top: 4px; }
+  .primary-button { padding: 8px 16px; margin-top: 5px; font-size: 12px; }
+}
+@media (orientation: portrait) and (pointer: coarse) { .portrait-notice { display: block; position: absolute; bottom: 8px; left: 8px; right: 8px; padding: 8px; background: #263b3bea; color: #f7f3e9; text-align: center; font-size: 11px; pointer-events: none; } .portrait-notice span { display: block; font-size: 9px; opacity: .6; margin-top: 3px; } .overlay { z-index: 2; } }
+
+/* Endings use the whole viewport, independently of the corridor Canvas. */
+.ending-screen { position: fixed; inset: 0; z-index: 100; overflow: hidden; background: #000; color: #26302b; touch-action: manipulation; user-select: none; outline: none; }
+.ending-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.ending-shade, .ending-blackout { position: absolute; inset: 0; background: #000; pointer-events: none; }
+.ending-shade { opacity: 0; }
+.ending-blackout { z-index: 5; }
+.ending-text { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: min(80%, 900px); margin: 0; text-align: center; white-space: pre-line; font-size: clamp(17px, 2.3vw, 30px); line-height: 1.95; letter-spacing: .055em; text-shadow: 0 1px 5px #fff, 0 0 14px #fffd; }
+.ending-dark { color: #f0eeeb; }
+.ending-dark .ending-text { text-shadow: 0 2px 8px #000, 0 0 20px #0008; }
+.ending-finish { position: absolute; bottom: max(8%, env(safe-area-inset-bottom)); width: 100%; text-align: center; }
+.ending-finish p { letter-spacing: .35em; font-size: 24px; margin: 0 0 16px; text-shadow: 0 1px 8px #888; }
+.ending-finish button { color: inherit; background: #ffffff18; border: 1px solid currentColor; border-radius: 4px; padding: 10px 20px; }
+.ending-hint { position: absolute; bottom: max(4%, env(safe-area-inset-bottom)); width: 100%; text-align: center; font-size: 11px; letter-spacing: .05em; text-shadow: 0 1px 5px #888; }
+@media (orientation: landscape) and (max-height: 500px) { .ending-text { top: 48%; font-size: 18px; line-height: 1.65; } .ending-finish { bottom: 4%; } .ending-finish p { margin-bottom: 8px; font-size: 20px; } }
+
+/* Full-viewport title: the corridor and ending layouts remain independent. */
+.title-screen { position: fixed; inset: 0; z-index: 90; overflow: hidden; background: #000; color: #fff; opacity: 1; transition: opacity 250ms ease; }
+.title-background { position: absolute; inset: 0; background: url("assets/images/title_background.png") center / cover no-repeat; animation: title-appear 750ms ease both; }
+.title-content { position: absolute; top: 22%; left: 50%; transform: translateX(-50%); width: min(44vw, 660px); display: flex; flex-direction: column; align-items: center; gap: clamp(16px, 2.5vh, 28px); }
+.title-logo { display: block; width: 100%; height: auto; animation: title-appear 600ms 150ms ease both; }
+.title-start { min-width: clamp(150px, 15vw, 220px); padding: 12px 30px; color: #fff; background: #0009; border: 1px solid #ffffffb3; border-radius: 3px; font-size: clamp(15px, 1.4vw, 20px); letter-spacing: .16em; touch-action: manipulation; animation: title-appear 550ms 300ms ease both; }
+.title-start:hover:not(:disabled), .title-start:focus-visible { background: #000c; border-color: #fff; }
+.title-start:disabled { cursor: default; color: #bdbdbd; }
+.title-instructions, .title-memory { position: absolute; margin: 0; bottom: max(clamp(16px, 4vh, 36px), env(safe-area-inset-bottom)); font-size: clamp(11px, 1.2vw, 16px); line-height: 1.6; letter-spacing: .06em; text-shadow: 0 2px 6px #000, 0 0 12px #000; animation: title-appear 500ms 350ms ease both; }
+.title-instructions { left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.title-memory { right: max(clamp(18px, 4vw, 50px), env(safe-area-inset-right)); white-space: nowrap; }
+.title-touch-keys { display: none; }
+.title-status { margin: 0; font-size: 11px; text-align: center; text-shadow: 0 1px 5px #000; }
+.title-leaving { opacity: 0; pointer-events: none; }
+@keyframes title-appear { from { opacity: 0; } to { opacity: 1; } }
+@media (pointer: coarse) { .title-pc-keys { display: none; } .title-touch-keys { display: inline; } }
+@media (orientation: landscape) and (max-height: 600px) { .title-content { top: 16%; width: min(44vw, 560px); gap: 14px; } .title-start { padding: 10px 24px; font-size: 15px; } }
+@media (orientation: portrait) { .title-content { top: 25%; width: 78vw; } .title-instructions { bottom: 11%; } }
+@media (prefers-reduced-motion: reduce) { .title-background, .title-logo, .title-start, .title-instructions, .title-memory { animation: none; } .title-screen { transition: none; } }
+
+.brand-logo { display: block; width: 4.5em; height: 1.15em; object-fit: cover; object-position: center; }
+.ending-true-finish .ending-finish { top: 50%; bottom: auto; transform: translateY(-50%); z-index: 6; color: #fff; }
+.ending-true-finish .ending-finish p { text-shadow: none; }
+
+.ending-normal-finish .ending-finish { top: 50%; bottom: auto; transform: translateY(-50%); z-index: 6; color: #111; }
+.ending-normal-finish .ending-finish p { text-shadow: none; }
+
+/* PWA controls belong to the title only; the native dialog traps focus. */
+.pwa-install { padding: 8px 16px; margin-top: -8px; color: #e0e0e0; background: #0007; border: 1px solid #ffffff50; border-radius: 3px; font-size: clamp(11px, 1vw, 14px); touch-action: manipulation; }
+.pwa-install:hover { color: #fff; border-color: #ffffffa0; }
+.pwa-guide { width: min(460px, 90vw); max-height: 88svh; overflow: auto; padding: clamp(18px, 3vw, 30px); color: #eee; background: #111f; border: 1px solid #aaa; border-radius: 5px; font-size: 14px; line-height: 1.7; }
+.pwa-guide::backdrop { background: #000b; }
+.pwa-guide h2 { margin: 0 0 12px; font-size: 20px; }
+.pwa-guide ol { padding-left: 24px; }
+.pwa-guide-note { font-size: 12px; color: #bbb; }
+.pwa-guide button { display: block; margin: 16px auto 0; padding: 8px 24px; color: #fff; border: 1px solid #aaa; background: #222; border-radius: 3px; }
+@media (orientation: landscape) and (max-height: 450px) { .pwa-guide { padding: 14px 22px; font-size: 12px; line-height: 1.5; } .pwa-guide h2 { font-size: 17px; margin-bottom: 6px; } .pwa-guide p, .pwa-guide ol { margin: 8px 0; } .pwa-install { padding: 6px 14px; } }
+
+/* Quiet title library; uses the existing reader for playback. */
+.title-list-button { padding: 8px 18px; color: #fff; background: #0009; border: 1px solid #ffffff80; border-radius: 3px; font-size: clamp(12px, 1.2vw, 16px); touch-action: manipulation; }
+.ending-list { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; padding: max(12px, env(safe-area-inset-top)) 18px; background: #000c; color: #fff; }
+.ending-list-panel { width: min(560px, 90vw); max-height: 90dvh; overflow: auto; padding: clamp(16px, 3vh, 32px); background: #101010f2; border: 1px solid #ffffff50; text-align: center; }
+.ending-list-panel h2 { margin: 0 0 18px; font-size: clamp(18px, 2vw, 24px); font-weight: normal; }
+.ending-list-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+.ending-list button { padding: 12px 8px; color: #fff; background: #ffffff08; border: 1px solid #ffffff60; border-radius: 3px; touch-action: manipulation; }
+.ending-list button:disabled { color: #999; border-color: #ffffff20; cursor: default; }
+.ending-list button:not(:disabled):hover, .ending-list button:focus-visible { background: #ffffff18; }
+@media (orientation: landscape) and (max-height: 600px) { .title-content { top: 10%; gap: 9px; } .title-list-button { padding: 6px 16px; } .ending-list-panel { padding: 14px 20px; } .ending-list-panel h2 { margin-bottom: 10px; } .ending-list-items { margin-bottom: 10px; } .ending-list button { padding: 9px 8px; } }
+@media (max-width: 500px) and (orientation: portrait) { .ending-list-items { grid-template-columns: repeat(2, 1fr); } }
+
+.title-secondary-actions { display: flex; justify-content: center; gap: 10px; }
+.share-menu { width: min(400px, 90vw); max-height: 90dvh; overflow: auto; padding: 20px; color: #fff; background: #101010f2; border: 1px solid #ffffff60; text-align: center; }
+.share-menu::backdrop { background: #000b; }
+.share-menu h2 { margin: 0 0 14px; font-size: 22px; font-weight: normal; }
+.share-actions { display: grid; gap: 8px; }
+.share-menu button, .share-menu a { display: block; width: 100%; padding: 10px 14px; border: 1px solid #ffffff60; border-radius: 3px; background: #ffffff08; color: #fff; font: inherit; text-decoration: none; touch-action: manipulation; }
+.share-menu a:hover, .share-menu button:hover { background: #ffffff18; }
+#share-message { min-height: 1.5em; margin: 12px 0; font-size: 13px; }
+#share-url { width: 100%; margin-bottom: 12px; }
+@media (orientation: landscape) and (max-height: 600px) { .share-menu { padding: 14px; } .share-menu h2 { font-size: 18px; margin-bottom: 10px; } .share-menu button, .share-menu a { padding: 8px 12px; font-size: 13px; } #share-message { margin: 8px 0; } }

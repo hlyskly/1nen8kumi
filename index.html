@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>1年8組 — 廊下の異変を見つけるゲーム</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js" defer></script>
+  <script src="rules.js" defer></script>
+  <script src="art.js" defer></script>
+  <script src="endingData.js" defer></script>
+  <script src="endings.js" defer></script>
+  <script src="shareData.js" defer></script>
+  <script src="share.js" defer></script>
+  <script src="title.js" defer></script>
+  <script src="pwa.js" defer></script>
+  <script src="audio.js" defer></script>
+  <script src="howToPlayData.js" defer></script>
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <section id="title-screen" class="title-screen" aria-label="1年8組 タイトル画面">
+    <div class="title-background" aria-hidden="true"></div>
+    <div class="title-content">
+      <img class="title-logo" src="assets/images/title_logo.png" alt="1年8組">
+      <button id="title-start" class="title-start" type="button" disabled>はじめる</button>
+      <div class="title-secondary-actions">
+        <button id="title-ending-list" class="title-list-button" type="button">エンディングリスト</button>
+        <button id="title-share" class="title-list-button" type="button">共有</button>
+      </div>
+      <button id="pwa-install" class="pwa-install" type="button">アプリとして遊ぶ</button>
+      <p id="title-status" class="title-status" role="status">画像を読み込み中…</p>
+    </div>
+    <p class="title-instructions"><span class="title-pc-keys">← →　移動　／　↑　入室</span><span class="title-touch-keys">◀ ▶　移動　／　入室</span></p>
+    <p id="title-memory" class="title-memory">エンディング 0/9</p>
+  </section>
+  <dialog id="share-menu" class="share-menu" aria-labelledby="share-heading">
+    <h2 id="share-heading">共有</h2>
+    <div class="share-actions">
+      <a id="share-x" target="_blank" rel="noopener noreferrer">Xで共有</a>
+      <a id="share-line" target="_blank" rel="noopener noreferrer">LINEで共有</a>
+      <button id="share-copy" type="button">リンクをコピー</button>
+    </div>
+    <p id="share-message" role="status" aria-live="polite"></p>
+    <input id="share-url" type="text" readonly aria-label="共有するURL" hidden>
+    <button id="share-close" type="button">閉じる</button>
+  </dialog>
+  <section id="ending-list" class="ending-list" aria-labelledby="ending-list-heading" hidden>
+    <div class="ending-list-panel">
+      <h2 id="ending-list-heading">エンディングリスト</h2>
+      <div id="ending-list-items" class="ending-list-items"></div>
+      <div id="ending-list-actions">
+        <button id="ending-list-back" type="button">タイトルへ戻る</button>
+        <button id="ending-list-delete" type="button">記憶を消去する</button>
+      </div>
+      <div id="ending-delete-confirm" role="group" aria-labelledby="ending-delete-question" hidden>
+        <p id="ending-delete-question">記憶をすべて消去しますか？</p>
+        <p>集めたエンディングは<br>すべて未解放になります。</p>
+        <button id="ending-delete-yes" type="button">消去する</button>
+        <button id="ending-delete-cancel" type="button">キャンセル</button>
+      </div>
+    </div>
+  </section>
+  <dialog id="pwa-guide" class="pwa-guide" aria-labelledby="pwa-guide-title">
+    <h2 id="pwa-guide-title">アプリとして遊ぶ</h2>
+    <p>ホーム画面に追加すると、<br>「1年8組」をアプリのように遊べます。</p>
+    <ol id="pwa-guide-steps"></ol>
+    <p id="pwa-guide-note" class="pwa-guide-note"></p>
+    <button id="pwa-guide-close" type="button">閉じる</button>
+  </dialog>
+  <main id="game-shell" class="game-shell" hidden>
+    <header class="topbar">
+      <div id="brand" class="brand"><img class="brand-logo" src="assets/images/title_logo.png" alt="1年8組"></div>
+      <button id="help-button" class="quiet-button" type="button">遊び方</button>
+    </header>
+    <section class="viewport" aria-label="ゲーム画面">
+      <canvas id="game" width="960" height="440" aria-label="左右に移動し、教室の前で上ボタンを押す学校の廊下"></canvas>
+      <div id="class-plates" class="class-plates" aria-hidden="true"></div>
+      <div id="debug" class="debug" hidden></div>
+      <div id="debug-controls" class="debug-controls" hidden>
+        <label for="debug-anomaly">次ラウンドの異変</label>
+        <select id="debug-anomaly"><option value="">通常抽選</option><option value="NORMAL">NORMAL（異変なし）</option></select>
+        <button id="debug-restart" type="button">指定状態でこのラウンドを再生成</button>
+        <span>初回1組だけNORMAL固定。Dで閉じると通常抽選へ戻ります。</span>
+        <span id="debug-endings-status"></span>
+        <button id="debug-endings-all" type="button">END1〜7をすべて既読</button>
+        <button id="debug-endings-clear" type="button">END既読を消去</button>
+        <label for="debug-ending">ENDプレビュー</label>
+        <select id="debug-ending"></select>
+        <button id="debug-ending-preview" type="button">選択したENDを確認</button>
+        <span>プレビューは既読に保存しません。終了後はデバッグへ戻ります。</span>
+      </div>
+      <div id="overlay" class="overlay" hidden>
+        <div class="card" id="overlay-card">
+          <p class="eyebrow" id="overlay-eyebrow">学校には、いつもと違う朝がある。</p>
+          <h1 id="overlay-title">1年8組</h1>
+          <div id="overlay-body">
+            <p>自分の教室まで、廊下をよく見て歩こう。</p>
+            <p>異変がなければ、そのまま歩く。<br>異変があれば、来た方向へ引き返す。</p>
+            <p id="goal-instructions" class="small">一本の廊下を歩いて、自分の教室を探そう。<br>1〜7組には入らず、8組の扉の前で入室。</p>
+            <p class="keys">PC：← → 移動 ／ ↑ 入室<br>スマホ：◀ ▶ 移動 ／ 入室ボタン ／ 横画面でプレイ</p>
+          </div>
+          <button id="primary-button" class="primary-button" type="button">登校する <span>→</span></button>
+          <p id="asset-status" class="small" role="status">画像を読み込み中…</p>
+        </div>
+      </div>
+      <div class="portrait-notice">スマートフォンを横向きにすると<br>廊下が見やすくなります。<span>横画面でのプレイ推奨</span></div>
+    </section>
+    <footer class="bottom-bar">
+      <div class="controls" aria-label="タッチ操作">
+        <button id="left-button" class="control-button" type="button" aria-label="左へ移動">◀<span>左</span></button>
+        <button id="up-button" class="control-button" type="button" aria-label="教室へ入室">▲<span>入室</span></button>
+        <button id="right-button" class="control-button" type="button" aria-label="右へ移動">▶<span>右</span></button>
+      </div>
+    </footer>
+  </main>
+  <section id="ending-screen" class="ending-screen" tabindex="-1" aria-label="教室の記憶" hidden>
+    <img id="ending-background" class="ending-background" src="assets/images/ending_classroom.png" alt="朝の教室">
+    <div id="ending-shade" class="ending-shade" aria-hidden="true"></div>
+    <p id="ending-text" class="ending-text"></p>
+    <div id="ending-finish" class="ending-finish" hidden>
+      <p>END</p>
+      <button id="ending-return" type="button">タイトルへ戻る</button>
+      <button id="ending-title" type="button" hidden>タイトルへ戻る</button>
+    </div>
+    <p id="ending-hint" class="ending-hint" hidden>クリック / タップ / Enterで続きを読む</p>
+    <div id="ending-blackout" class="ending-blackout" aria-hidden="true"></div>
+  </section>
+</body>
+</html>
