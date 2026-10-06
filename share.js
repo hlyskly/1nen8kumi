@@ -9,13 +9,18 @@
   }
   function links(data) {
     const params = new URLSearchParams({ text: data.text, url: data.url });
-    return { x: `https://twitter.com/intent/tweet?${params}`, line: `https://social-plugins.line.me/lineit/share?${params}` };
+    return {
+      mail: `mailto:?subject=${encodeURIComponent(data.title)}&body=${encodeURIComponent(`${data.text}\r\n\r\n${data.url}`)}`,
+      line: `https://social-plugins.line.me/lineit/share?${params}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?${new URLSearchParams({ u: data.url })}`,
+      x: `https://twitter.com/intent/tweet?${params}`
+    };
   }
   class TitleShare {
     constructor(document, host, canShare, data = root.SHARE_DATA) {
       this.document = document; this.host = host; this.canShare = canShare; this.data = data;
       this.busy = false; this.copying = false;
-      this.ui = Object.fromEntries(["title-share", "share-menu", "share-x", "share-line", "share-copy", "share-close", "share-message", "share-url"].map(id => [id, document.getElementById(id)]));
+      this.ui = Object.fromEntries(["title-share", "share-menu", "share-mail", "share-line", "share-facebook", "share-x", "share-copy", "share-close", "share-message", "share-url"].map(id => [id, document.getElementById(id)]));
       this.ui["title-share"].addEventListener("click", () => this.share());
       this.ui["share-close"].addEventListener("click", () => this.close());
       this.ui["share-copy"].addEventListener("click", () => this.copy());
@@ -43,7 +48,7 @@
     }
     showMenu(data) {
       const urls = links(data);
-      this.ui["share-x"].href = urls.x; this.ui["share-line"].href = urls.line;
+      for (const id of ["mail", "line", "facebook", "x"]) this.ui[`share-${id}`].href = urls[id];
       this.ui["share-url"].value = data.url; this.ui["share-url"].hidden = true;
       this.ui["share-message"].textContent = "";
       const dialog = this.ui["share-menu"];

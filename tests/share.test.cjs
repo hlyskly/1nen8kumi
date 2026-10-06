@@ -12,7 +12,9 @@ test('data supplies title/text; current URL removes query/hash, fixed URL preser
  assert.deepEqual(payload(data,'https://example.com/game/?debug=1#x'),{title:data.title,text:data.text,url:'https://example.com/game/'});
  assert.equal(payload({...data,url:'https://fixed.example/play/?campaign=abc#intro'},'https://example.com/').url,'https://fixed.example/play/?campaign=abc#intro');
  const edited={title:'変更したタイトル',text:'日本語 & ? + #',url:''};const p=payload(edited,'https://example.com/');
- for(const target of Object.values(links(p))){const u=new URL(target);assert.equal(u.searchParams.get('text'),edited.text);assert.equal(u.searchParams.get('url'),p.url);}
+ for(const target of [links(p).line,links(p).x]){const u=new URL(target);assert.equal(u.searchParams.get('text'),edited.text);assert.equal(u.searchParams.get('url'),p.url);}
+ const mail=new URL(links(p).mail);assert.equal(mail.protocol,'mailto:');assert.equal(mail.searchParams.get('subject'),edited.title);assert.equal(mail.searchParams.get('body'),`${edited.text}\r\n\r\n${p.url}`);
+ const facebook=new URL(links(p).facebook);assert.equal(facebook.origin,'https://www.facebook.com');assert.equal(facebook.pathname,'/sharer/sharer.php');assert.equal(facebook.searchParams.get('u'),p.url);assert.equal([...facebook.searchParams].length,1);
  assert.equal(payload(data,'file:///tmp/index.html?debug=1#x').url,'file:///tmp/index.html');
 });
 test('native sharing is synchronous from gesture, blocks duplicate requests and starts nothing else',async()=>{

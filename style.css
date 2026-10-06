@@ -128,3 +128,10 @@ h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.15; letter-spacing: .13
 #share-message { min-height: 1.5em; margin: 12px 0; font-size: 13px; }
 #share-url { width: 100%; margin-bottom: 12px; }
 @media (orientation: landscape) and (max-height: 600px) { .share-menu { padding: 14px; } .share-menu h2 { font-size: 18px; margin-bottom: 10px; } .share-menu button, .share-menu a { padding: 8px 12px; font-size: 13px; } #share-message { margin: 8px 0; } }
+@media (orientation: landscape) and (max-height: 360px) {
+  .share-menu { padding: 8px; }
+  .share-menu h2 { margin-bottom: 6px; }
+  .share-actions { gap: 3px; }
+  .share-menu button, .share-menu a { padding: 6px 12px; }
+  #share-message { margin: 4px 0; }
+}
