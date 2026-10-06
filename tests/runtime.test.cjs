@@ -35,6 +35,7 @@ function boot(random = () => .1, forced = null, saved = new Map(), endingFixture
   doc.createElement = () => { const element = new Element(""); element.ownerDocument = doc; return element; };
   doc.getElementById = id => { assert.ok(elements[id], `HTML includes ${id}`); return elements[id]; };
   const renderCalls = new Set();
+  let scenePaints = 0;
   let drawing = [], transform = { x: 0, y: 0, sx: 1, sy: 1 };
   const stack = [];
   let shape = null;
@@ -43,6 +44,7 @@ function boot(random = () => .1, forced = null, saved = new Map(), endingFixture
     if (key === "createLinearGradient") return () => ({ addColorStop() {} });
     return target[key] ?? ((...args) => {
       renderCalls.add(key);
+      if (key === "clearRect") { drawing = []; scenePaints++; }
       if (key === "save") stack.push({ ...transform });
       if (key === "restore") transform = stack.pop();
       if (key === "translate") { transform.x += args[0] * transform.sx; transform.y += args[1] * transform.sy; }
@@ -77,6 +79,7 @@ function boot(random = () => .1, forced = null, saved = new Map(), endingFixture
   vm.runInContext(fs.readFileSync(path.join(root, "rules.js"), "utf8"), context);
   const OriginalRun = context.SchoolRules.Run;
   context.SchoolRules = { ...context.SchoolRules, Run: class extends OriginalRun { constructor() { super(random); run = this; } } };
+  vm.runInContext(fs.readFileSync(path.join(root, "assetData.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(root, "art.js"), "utf8"), context);
   for (const file of ["endingData.js", "howToPlayData.js", "endings.js", "shareData.js", "share.js", "title.js", "audio.js"]) {
     vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context);
@@ -91,7 +94,7 @@ function boot(random = () => .1, forced = null, saved = new Map(), endingFixture
     constructor() { super(); for (const method of ["unlock", "playChime", "armChime", "startGameAmbience", "stopGameAmbience", "playDoorSound", "resetWalking", "updateWalking"]) { const original = this[method].bind(this); this[method] = (...args) => { audioCalls.push([method, ...args]); return original(...args); }; } }
   };
   vm.runInContext(fs.readFileSync(path.join(root, "game.js"), "utf8").replace("const FORCE_ANOMALY = null", `const FORCE_ANOMALY = ${JSON.stringify(forced)}`), context);
-  function frames(count = 1, milliseconds = 20) { for (let i = 0; i < count; i++) { timestamp += milliseconds; drawing = []; nextFrame(timestamp); } }
+  function frames(count = 1, milliseconds = 20) { for (let i = 0; i < count; i++) { timestamp += milliseconds; nextFrame(timestamp); } }
   frames();
   const keydown = key => doc.send("keydown", { key, code: key.toLowerCase() === "d" ? "KeyD" : key });
   const keyup = key => doc.send("keyup", { key });
@@ -113,7 +116,7 @@ function boot(random = () => .1, forced = null, saved = new Map(), endingFixture
   const plates = () => elements["class-plates"].hidden ? [] : elements["class-plates"].children
     .filter(label => !label.hidden).map(label => ({ text: label.textContent,
       x: parseFloat(label.style.left) * 960 / 100, y: parseFloat(label.style.top) * 440 / 100 }));
-  return { assignments, audioCalls, walkLocal, exit, advance, walkTo, snapshot: () => [...drawing, ...plates()], run, elements, frames, keydown, keyup, hold, click, start, doc, win, renderCalls };
+  return { paintCount: () => scenePaints, assignments, audioCalls, walkLocal, exit, advance, walkTo, snapshot: () => [...drawing, ...plates()], run, elements, frames, keydown, keyup, hold, click, start, doc, win, renderCalls };
 }
 const { LAYOUT } = require(path.join(root, "art.js"));
 const CLASS_IMAGES = new Set(["pillar.png", "door.png", "window.png", "bulletin_board.png", "class_plate.png", "girl_a.png", "girl_b.png", "boy.png"]);
@@ -804,5 +807,49 @@ test("help text data controls title, paragraphs and button; no initialization/au
   assert.equal(app.audioCalls.filter(c=>c[0]==="playChime").length,1);assert.equal(app.audioCalls.filter(c=>c[0]==="startGameAmbience").length,0);
   app.click("primary-button");assert.equal(app.run.phase,"corridor");assert.equal(app.audioCalls.filter(c=>c[0]==="playChime").length,1);
   assert.equal(app.audioCalls.filter(c=>c[0]==="startGameAmbience").length,1);
+});
+test("Enter on the title list opens the list without starting or sounding the chime", () => {
+  for (const input of [{key:"Enter"}, {key:"Return"}, {key:"Enter",code:"NumpadEnter"}]) {
+    const app = boot();
+    const event = { code: input.key, ...input, target: app.elements["title-ending-list"] };
+    app.doc.send("keydown", { ...event, repeat: true });
+    assert.equal(app.elements["ending-list"].hidden, true);
+    app.doc.send("keydown", event); app.frames(20);
+    assert.equal(app.elements["ending-list"].hidden, false);
+    assert.equal(app.elements["title-screen"].hidden, false);
+    assert.equal(app.run.phase, "title");
+    assert.equal(app.audioCalls.some(call => call[0] === "playChime"), false);
+  }
+});
+test("memory END keyboard activation honors the chosen return button and keeps unlocks", () => {
+  for (const button of ["ending-title", "ending-return"]) {
+    const saved = new Map();
+    const app = boot(() => .1, null, saved, ["one memory line"]);
+    app.start(); app.walkLocal(CORRIDOR.doors[0]);
+    const block = app.run.active, x = app.run.travelX;
+    app.click("up-button"); app.frames(70);
+    assert.equal(app.elements["ending-finish"].hidden, false);
+    app.doc.send("keydown", {key:"Enter", code:"Enter", target:app.elements[button]});
+    assert.equal(app.run.phase, button === "ending-title" ? "title" : "corridor");
+    assert.equal(app.elements["title-screen"].hidden, button !== "ending-title");
+    assert.deepEqual(JSON.parse(saved.get("ichinen8_endings_seen")), ["1"]);
+    if (button === "ending-return") { assert.equal(app.run.active, block); assert.equal(app.run.travelX, x); }
+  }
+});
+test("idle and paused scenes stop repainting, while movement, resizing and resuming refresh", () => {
+  const app = boot(); app.start(); app.walkLocal(CORRIDOR.windows[1]); app.frames();
+  const paints = app.paintCount(), elapsed = app.run.active.elapsed, snapshot = app.snapshot();
+  app.frames(100);
+  assert.equal(app.paintCount(), paints);
+  assert.ok(app.run.active.elapsed > elapsed);
+  assert.deepEqual(app.snapshot(), snapshot);
+  app.hold("ArrowRight", 2); app.frames();
+  assert.ok(app.paintCount() > paints);
+  const stopped = app.paintCount(); app.frames(20); assert.equal(app.paintCount(), stopped);
+  app.win.send("resize"); app.frames(); assert.equal(app.paintCount(), stopped + 1);
+  app.click("help-button"); app.frames();
+  const paused = app.paintCount(), pausedElapsed = app.run.active.elapsed;
+  app.frames(100); assert.equal(app.paintCount(), paused); assert.equal(app.run.active.elapsed, pausedElapsed);
+  app.click("primary-button"); app.frames(); assert.equal(app.paintCount(), paused + 1);
 });
 console.log(`\n${checks} runtime checks passed. Real browser layout requires visual inspection.`);

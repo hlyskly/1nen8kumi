@@ -13,7 +13,7 @@
   document.title = `${ownClass} — 廊下の異変を見つけるゲーム`;
   ui["overlay-title"].textContent = ownClass;
   ui["goal-instructions"].innerHTML = `一本の廊下を歩いて、自分の教室を探そう。<br>${otherClasses}には入らず、異変のない${WORLD.finalRoom}組の後扉で入室。`;
-  const W = 960, H = 440, FLOOR = 341;
+  const W = 960, H = 440;
   const keys = new Set();
   const pointers = new Map();
   let overlayAction = null;
@@ -25,14 +25,14 @@
   let playerMoving = false;
   const PLAYER_FRAMES = ["playerWalk1", "playerWalk2", "playerWalk3", "playerWalk4", "playerWalk5", "playerWalk6"];
   const PLAYER_FRAME_SECONDS = .120 / (GAME_CONFIG.walkSpeed > 0 ? GAME_CONFIG.walkSpeed : 1);
-  let textDirection = 1;
   let lastTime = null;
-  const font = '"Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
   const playButtons = [ui["left-button"], ui["up-button"], ui["right-button"]];
   const { SIZES, LAYOUT, ANOMALY_VISUALS, SpriteSet } = SchoolArt;
   const PLAYER_DRAW_SIZE = Object.freeze({ width: SIZES.playerWidth, height: SIZES.personHeight });
   const plateLabels = new Map();
   let assetsReady = false;
+  let lastSceneKey = null;
+  let lastDebugMemory = null;
   ui["primary-button"].disabled = true;
   const art = new SpriteSet(() => {
     assetsReady = true;
@@ -61,6 +61,7 @@
     ui["primary-button"].focus({ preventScroll: true });
   }
   function hideOverlay() {
+    lastSceneKey = null;
     clearInput();
     ui.overlay.hidden = true;
     playButtons.forEach(item => { item.disabled = false; });
@@ -187,14 +188,20 @@
       if (titleScreen.listOpen) { if (event.key === "Escape") titleScreen.closeList(); return; }
       if (event.key === "Enter" || event.key === "Return" || event.code === "NumpadEnter") {
         event.preventDefault();
-        if (!event.repeat && !event.isComposing) { clearInput(); titleScreen.begin(); }
+        if (!event.repeat && !event.isComposing) {
+          if (event.target === titleScreen.ui["title-ending-list"]) titleScreen.showList();
+          else { clearInput(); titleScreen.begin(); }
+        }
       } else if (event.key.startsWith("Arrow")) event.preventDefault();
       return;
     }
     if (endingPlayer.active) {
       if (event.key === "Enter" || event.key === "Return" || event.code === "NumpadEnter") {
         event.preventDefault();
-        if (!event.repeat && !event.isComposing) endingPlayer.advance();
+        if (!event.repeat && !event.isComposing) {
+          if (endingPlayer.finished && event.target === endingPlayer.ui["ending-title"]) endingPlayer.returnToTitle("title");
+          else endingPlayer.advance();
+        }
       } else if (event.key.startsWith("Arrow")) event.preventDefault();
       return;
     }
@@ -240,16 +247,6 @@
   ui["up-button"].addEventListener("contextmenu", event => event.preventDefault());
 
   function rect(x, y, width, height, color) { ctx.fillStyle = color; ctx.fillRect(x, y, width, height); }
-  function line(x1, y1, x2, y2, color, width = 1) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke(); }
-  function text(value, x, y, size = 14, color = "#384e49", align = "left", weight = "normal") {
-    ctx.font = `${weight} ${size}px ${font}`; ctx.fillStyle = color; ctx.textAlign = align;
-    if (textDirection === -1) {
-      ctx.save(); ctx.translate(x, y); ctx.scale(-1, 1); ctx.fillText(value, 0, 0); ctx.restore();
-    } else ctx.fillText(value, x, y);
-  }
-  function ellipse(x, y, rx, ry, color) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); }
-  function polygon(points, color) { ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fillStyle = color; ctx.fill(); }
-
   function drawPillar(at) {
     art.draw(ctx, "pillar", at, SIZES.doorBottom - SIZES.pillarHeight, { height: SIZES.pillarHeight });
   }
@@ -317,58 +314,14 @@
         ui["class-plates"].appendChild(label); plateLabels.set(block.id, label);
       }
       const x = blockX(block, CORRIDOR.doors[1]) - camera;
-      label.textContent = `1-${block.room}`;
-      label.style.left = `${x / W * 100}%`;
-      label.style.top = `${SIZES.plateCenterY / H * 100}%`;
+      const labelText = `1-${block.room}`;
+      if (label.textContent !== labelText) label.textContent = labelText;
+      const left = `${x / W * 100}%`, top = `${SIZES.plateCenterY / H * 100}%`;
+      if (label.style.left !== left) label.style.left = left;
+      if (label.style.top !== top) label.style.top = top;
       label.hidden = x < -SIZES.plateWidth / 2 || x > W + SIZES.plateWidth / 2;
     }
   }
-  function drawPerson(x, y, options = {}) {
-    const { player = false, female = false, direction = 1, step = 0, scale = 1, back = false, front = false, faceColor = "#e9c39b" } = options;
-    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-    ellipse(0, 0, 18, 4, "#465c4c24");
-    const stride = Math.sin(step) * 7;
-    const navy = player ? "#344f68" : "#2f425e";
-    line(-5, -23, -6 + stride, -3, female ? "#e0ba98" : "#737981", 8);
-    line(5, -23, 6 - stride, -3, female ? "#e0ba98" : "#737981", 8);
-    if (female) {
-      line(-6 + stride, -13, -6 + stride, -3, "#354454", 6);
-      line(6 - stride, -13, 6 - stride, -3, "#354454", 6);
-    }
-    rect(-10 + stride, -6, 12, 6, "#394941"); rect(1 - stride, -6, 12, 6, "#394941");
-    rect(-12, -52, 24, 30, navy);
-    polygon([[-7, -52], [0, -48], [7, -52], [5, -36], [-5, -36]], "#f1f1e7");
-    polygon([[-11, -51], [-6, -52], [-2, -36], [-8, -41]], "#50637a");
-    polygon([[11, -51], [6, -52], [2, -36], [8, -41]], "#50637a");
-    if (female) {
-      polygon([[-1, -46], [-7, -49], [-7, -42], [0, -44], [7, -42], [7, -49], [1, -46]], "#9d5967");
-      polygon([[-11, -29], [11, -29], [17, -14], [-17, -14]], "#5c6979");
-      for (let pleat = -10; pleat <= 10; pleat += 5) line(pleat, -27, pleat * 1.35, -15, "#adb5bd", 1);
-      line(-13, -24, 13, -24, "#adb5bd"); line(-15, -18, 15, -18, "#adb5bd");
-    } else polygon([[-2, -47], [2, -47], [3, -35], [0, -31], [-3, -35]], "#8e5961");
-    ellipse(0, -30, 1, 1, "#c5b894");
-    line(-13, -48, -15 - stride / 2, -31, navy, 6); line(13, -48, 15 + stride / 2, -31, navy, 6);
-    ellipse(-15 - stride / 2, -28, 3, 4, "#e0b991"); ellipse(15 + stride / 2, -28, 3, 4, "#e0b991");
-    if (player) { rect(direction > 0 ? -17 : 10, -50, 8, 26, "#a07551"); }
-    ellipse(0, -64, 12, 14, faceColor);
-    ellipse(-1, -72, 13, 9, player ? "#384642" : "#52614b");
-    if (front) {
-      rect(-13, -71, 4, 14, "#52614b"); rect(9, -71, 4, 14, "#52614b");
-      if (female) { rect(-13, -65, 4, 15, "#52614b"); rect(9, -65, 4, 15, "#52614b"); }
-    } else {
-      rect(direction > 0 ? -13 : 7, -71, 6, 14, player ? "#384642" : "#52614b");
-      if (female) rect(direction > 0 ? -13 : 7, -65, 6, 15, "#52614b");
-    }
-    if (back) {
-      ellipse(0, -65, 12, 13, "#52614b");
-      rect(-9, -55, 18, 3, "#e9c39b");
-    } else if (front) {
-      ellipse(-5, -64, 2, 2.5, "#182426"); ellipse(5, -64, 2, 2.5, "#182426");
-      line(-3, -57, 3, -57, "#835a47");
-    } else ellipse(direction * 6, -64, 1.4, 1.4, "#344b45");
-    ctx.restore();
-  }
-
   function drawFloorAnomaly(block, visual) {
     if (visual?.target !== "floor") return;
     const size = art.dimensions(visual.asset, visual.height ? { height: visual.height } : { width: visual.width });
@@ -403,10 +356,9 @@
       // Each template owns only its side of the empty boundary, including when
       // an immediate reversal replaces the previously drawn adjacent block.
       ctx.save(); ctx.beginPath(); ctx.rect(left, 0, WORLD.length, H); ctx.clip();
-      // Render the template in entry-relative coordinates. Text glyphs and board
-      // images counter-mirror to stay readable; all other sprites keep mirroring.
+      // Render the template in entry-relative coordinates. Board images
+      // counter-mirror to stay readable; all other sprites keep mirroring.
       ctx.save(); ctx.translate(block.anchor, 0); ctx.scale(block.direction, 1);
-      textDirection = block.direction;
       for (const at of CORRIDOR.columns) drawPillar(at);
       CORRIDOR.doors.forEach((at, i) => drawDoor(at, i === 1));
       CORRIDOR.windows.forEach((at, index) => drawWindow(at, block, LAYOUT.windows[index]));
@@ -414,23 +366,41 @@
       const visual = ANOMALY_VISUALS[block.anomaly?.id];
       drawFloorAnomaly(block, visual);
       CORRIDOR.npcs.forEach((npc, index) => drawCorridorNPC(npc, index, visual));
-      textDirection = 1;
       ctx.restore();
       ctx.restore();
     }
     // All seven aligned 1600x1600 images use this same fixed square.
     const playerSize = PLAYER_DRAW_SIZE;
-    const playerFrame = playerMoving ? PLAYER_FRAMES[Math.floor((walk + 1e-9) / PLAYER_FRAME_SECONDS) % PLAYER_FRAMES.length] : "player";
+    const playerFrame = currentPlayerFrame();
     art.draw(ctx, playerFrame, run.x, SIZES.playerFoot - playerSize.height * SIZES.playerSoleAnchor,
       playerSize, facing === -1);
     ctx.restore();
   }
 
+  function currentPlayerFrame() {
+    return playerMoving ? PLAYER_FRAMES[Math.floor((walk + 1e-9) / PLAYER_FRAME_SECONDS) % PLAYER_FRAMES.length] : "player";
+  }
+  function renderScene() {
+    camera = cameraX(run, W);
+    // Static anomalies and scenery do not change while standing still.
+    const key = `${assetsReady}|${run.phase}|${run.travelX}|${camera}|${run.active.id}|${run.trailing?.id}|${facing}|${currentPlayerFrame()}`;
+    if (key === lastSceneKey) return;
+    lastSceneKey = key;
+    ctx.clearRect(0, 0, W, H);
+    drawCorridor();
+    updateClassPlates();
+  }
+
   function updateUI() {
     if (debug) {
-      ui["debug-endings-status"].textContent = seenEndings.status();
+      const memory = [...seenEndings.seen].sort().join(",");
+      if (memory !== lastDebugMemory) {
+        ui["debug-endings-status"].textContent = seenEndings.status();
+        lastDebugMemory = memory;
+      }
       ui["debug-ending-preview"].disabled = run.phase !== "corridor" || !ui.overlay.hidden || endingPlayer.active;
-      ui.debug.textContent = `内部進行：1年${run.currentRoom}組\n${run.anomaly ? "異変あり" : "異変なし"}\n選択：${run.anomaly?.code ?? "NORMAL"}\n種類：${run.anomaly?.label ?? "なし"}\n進行方向：${run.active.direction === -1 ? "左" : "右"}\nブロック：#${run.active.id} ／ ${run.inBlock ? "ブロック内" : "開始壁ゾーン"}\n判定済み：${run.active.judged ? "はい" : "いいえ"}\n直前の判断：${run.lastDecision ? (run.lastDecision.correct ? "正解" : "不正解") + " (#" + run.lastDecision.blockId + ")" : "未確定"}\nブロック内位置：${Math.round(run.localX)}\n状態：${run.phase}`;
+      const debugText = `内部進行：1年${run.currentRoom}組\n${run.anomaly ? "異変あり" : "異変なし"}\n選択：${run.anomaly?.code ?? "NORMAL"}\n種類：${run.anomaly?.label ?? "なし"}\n進行方向：${run.active.direction === -1 ? "左" : "右"}\nブロック：#${run.active.id} ／ ${run.inBlock ? "ブロック内" : "開始壁ゾーン"}\n判定済み：${run.active.judged ? "はい" : "いいえ"}\n直前の判断：${run.lastDecision ? (run.lastDecision.correct ? "正解" : "不正解") + " (#" + run.lastDecision.blockId + ")" : "未確定"}\nブロック内位置：${Math.round(run.localX)}\n状態：${run.phase}`;
+      if (ui.debug.textContent !== debugText) ui.debug.textContent = debugText;
       ui["debug-restart"].disabled = !ui.overlay.hidden || !run.inBlock || run.active.tutorial;
     }
   }
@@ -442,7 +412,7 @@
       titleScreen.refreshReady();
       if (titleScreen.leaving) {
         // Paint the starting wall under the short title fade without ticking Run.
-        camera = cameraX(run, W); ctx.clearRect(0, 0, W, H); drawCorridor(); updateClassPlates();
+        renderScene();
       }
       titleScreen.tick(elapsed * 1000);
     } else if (!document.hidden && endingPlayer.active) {
@@ -464,16 +434,14 @@
         else { walk = 0; playerMoving = false; }
       }
       audio.updateWalking(playerMoving ? Math.floor((walk + 1e-9) / PLAYER_FRAME_SECONDS) % PLAYER_FRAMES.length : null);
-      camera = cameraX(run, W);
-      ctx.clearRect(0, 0, W, H);
-      drawCorridor();
-      updateClassPlates();
+      renderScene();
       updateUI();
     }
     requestAnimationFrame(frame);
   }
   // Keep a sharp canvas on Retina displays while using fixed logical coordinates.
   function resizeCanvas() {
+    lastSceneKey = null;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

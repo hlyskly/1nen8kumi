@@ -4,7 +4,7 @@
   const CONFIG = typeof module === "object" && module.exports ? require("./config.js") : root.GAME_CONFIG;
   const AUDIO_VOLUME = CONFIG.baseVolumes;
   const CATEGORY = Object.freeze({ ambience: "ambientVolume", fluorescent: "lightVolume", footstep1: "footstepVolume", footstep2: "footstepVolume", door: "doorVolume", chime: "chimeVolume" });
-  const FILES = Object.freeze({ ambience: "school_ambience.mp3", fluorescent: "fluorescent_hum.mp3", footstep1: "footstep1.mp3", footstep2: "footstep2.mp3", door: "sliding_door.mp3", chime: "school_chime.mp3" });
+  const FILES = (typeof module === "object" && module.exports ? require("./assetData.js") : root.SchoolAssets).AUDIO_FILES;
   class GameAudio {
     constructor(host = root) {
       this.host = host; this.buffers = {}; this.loops = new Map();

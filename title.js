@@ -31,7 +31,7 @@
         this.showList();
       });
       let loaded = 0;
-      this.images = ["title_background.png", "title_logo.png"].map(file => {
+      this.images = root.SchoolAssets.TITLE_IMAGES.map(file => {
         const image = new Image();
         image.onload = () => { loaded++; this.assetsReady = loaded === 2; this.refreshReady(); };
         image.onerror = () => { this.failed = true; this.ui["title-status"].textContent = "画像を読み込めませんでした。ページを再読み込みしてください。"; this.refreshReady(); };
@@ -41,7 +41,8 @@
     }
     refreshReady() {
       const ready = this.assetsReady && this.canStart() && !this.failed;
-      this.ui["title-start"].disabled = !ready || this.leaving;
+      const disabled = !ready || this.leaving;
+      if (this.ui["title-start"].disabled !== disabled) this.ui["title-start"].disabled = disabled;
       if (ready) this.ui["title-status"].hidden = true;
     }
     show() {

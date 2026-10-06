@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),vm=requir
 const root=path.join(__dirname,'..');
 function configured(overrides={}) {
  const context=vm.createContext({console});
- for(const file of ['config.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context);
+ for(const file of ['config.js','assetData.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context);
  context.GAME_CONFIG={...context.GAME_CONFIG,...overrides};
  for(const file of ['rules.js','audio.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context);
  return context;

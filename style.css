@@ -84,7 +84,7 @@ h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.15; letter-spacing: .13
 .title-leaving { opacity: 0; pointer-events: none; }
 @keyframes title-appear { from { opacity: 0; } to { opacity: 1; } }
 @media (pointer: coarse) { .title-pc-keys { display: none; } .title-touch-keys { display: inline; } }
-@media (orientation: landscape) and (max-height: 600px) { .title-content { top: 16%; width: min(44vw, 560px); gap: 14px; } .title-start { padding: 10px 24px; font-size: 15px; } }
+@media (orientation: landscape) and (max-height: 600px) { .title-content { top: 10%; width: min(44vw, 560px); gap: 9px; } .title-start { padding: 10px 24px; font-size: 15px; } }
 @media (orientation: portrait) { .title-content { top: 25%; width: 78vw; } .title-instructions { bottom: 11%; } }
 @media (prefers-reduced-motion: reduce) { .title-background, .title-logo, .title-start, .title-instructions, .title-memory { animation: none; } .title-screen { transition: none; } }
 
@@ -115,7 +115,7 @@ h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.15; letter-spacing: .13
 .ending-list button { padding: 12px 8px; color: #fff; background: #ffffff08; border: 1px solid #ffffff60; border-radius: 3px; touch-action: manipulation; }
 .ending-list button:disabled { color: #999; border-color: #ffffff20; cursor: default; }
 .ending-list button:not(:disabled):hover, .ending-list button:focus-visible { background: #ffffff18; }
-@media (orientation: landscape) and (max-height: 600px) { .title-content { top: 10%; gap: 9px; } .title-list-button { padding: 6px 16px; } .ending-list-panel { padding: 14px 20px; } .ending-list-panel h2 { margin-bottom: 10px; } .ending-list-items { margin-bottom: 10px; } .ending-list button { padding: 9px 8px; } }
+@media (orientation: landscape) and (max-height: 600px) { .title-list-button { padding: 6px 16px; } .ending-list-panel { padding: 14px 20px; } .ending-list-panel h2 { margin-bottom: 10px; } .ending-list-items { margin-bottom: 10px; } .ending-list button { padding: 9px 8px; } }
 @media (max-width: 500px) and (orientation: portrait) { .ending-list-items { grid-template-columns: repeat(2, 1fr); } }
 
 .title-secondary-actions { display: flex; justify-content: center; gap: 10px; }
