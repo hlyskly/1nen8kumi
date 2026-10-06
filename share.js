@@ -33,15 +33,7 @@
       this.busy = true; this.ui["title-share"].disabled = true;
       try {
         const data = this.current();
-        if (typeof this.host.navigator?.share === "function") {
-          try {
-            // ユーザーのクリック・タップ内で直接開始します。
-            await this.host.navigator.share(data);
-            return;
-          } catch (error) {
-            if (error?.name === "AbortError") return; // キャンセルは通知しません。
-          }
-        }
+        // 対応ブラウザでも指定の5項目を優先し、独自メニューを表示します。
         this.showMenu(data);
       } catch (_) { /* 共有エラーでゲームを停止させません。 */ }
       finally { this.busy = false; this.ui["title-share"].disabled = false; }

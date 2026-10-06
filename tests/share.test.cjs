@@ -17,16 +17,17 @@ test('data supplies title/text; current URL removes query/hash, fixed URL preser
  const facebook=new URL(links(p).facebook);assert.equal(facebook.origin,'https://www.facebook.com');assert.equal(facebook.pathname,'/sharer/sharer.php');assert.equal(facebook.searchParams.get('u'),p.url);assert.equal([...facebook.searchParams].length,1);
  assert.equal(payload(data,'file:///tmp/index.html?debug=1#x').url,'file:///tmp/index.html');
 });
-test('native sharing is synchronous from gesture, blocks duplicate requests and starts nothing else',async()=>{
- let resolve;const calls=[];const f=fixture({share(p){calls.push(p);return new Promise(r=>resolve=r);}});
- const request=f.share.share();assert.equal(calls.length,1);assert.equal(f.share.busy,true);await f.share.share();assert.equal(calls.length,1);
- resolve();await request;assert.equal(f.share.open,false);assert.equal(f.share.busy,false);assert.equal(f.items['title-share'].disabled,false);
- assert.deepEqual(calls[0],payload(data,'https://example.com/game/'));
- const denied=fixture({share(){throw Error('must not call');}},{allowed:false});await denied.share.share();assert.equal(denied.share.busy,false);
+test('custom menu is preferred even when native sharing is available; duplicate and disallowed calls are ignored',async()=>{
+ let nativeCalls=0;const f=fixture({share(){nativeCalls++;throw Error('must not call');}});
+ await f.share.share();assert.equal(nativeCalls,0);assert.equal(f.share.open,true);
+ assert.equal(f.share.busy,false);assert.equal(f.items['title-share'].disabled,false);
+ f.items['share-message'].textContent='unchanged';await f.share.share();assert.equal(f.items['share-message'].textContent,'unchanged');
+ f.share.close();assert.equal(f.share.open,false);assert.equal(f.doc.focus,f.items['title-share']);
+ const denied=fixture({}, {allowed:false});await denied.share.share();assert.equal(denied.share.open,false);
 });
-test('native cancellation is quiet; unavailable and failed native sharing offer menu',async()=>{
- const cancel=fixture({share(){return Promise.reject(Object.assign(Error('cancel'),{name:'AbortError'}));}});await cancel.share.share();assert.equal(cancel.share.open,false);assert.equal(cancel.items['share-message'].textContent,undefined);
- for(const nav of [{},{share(){throw Error('denied');}}]){const f=fixture(nav);await f.share.share();assert.equal(f.share.open,true);assert.equal(new URL(f.items['share-line'].href).searchParams.get('url'),'https://example.com/game/');f.share.close();assert.equal(f.share.open,false);assert.equal(f.doc.focus,f.items['title-share']);}
+test('custom menu also works without native sharing',async()=>{
+ const f=fixture();await f.share.share();assert.equal(f.share.open,true);
+ assert.equal(new URL(f.items['share-line'].href).searchParams.get('url'),'https://example.com/game/');
 });
 test('clipboard succeeds, legacy fallback succeeds, failure provides manually selectable URL',async()=>{
  const copied=[];const f=fixture({clipboard:{async writeText(v){copied.push(v);}}});await f.share.share();await f.share.copy();assert.deepEqual(copied,['https://example.com/game/']);assert.equal(f.items['share-message'].textContent,'リンクをコピーしました');
