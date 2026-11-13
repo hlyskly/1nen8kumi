@@ -1,11 +1,10 @@
 /* Bump CACHE_VERSION when publishing a game update. No localStorage access. */
 "use strict";
 importScripts("./assetData.js");
-const CACHE_VERSION = "v23";
+const CACHE_VERSION = "v24";
 const CACHE_PREFIX = "ichinen8-cache-";
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 const CORE = [
-  "./",
   "./index.html",
   "./style.css",
   "./config.js",
