@@ -15,8 +15,6 @@
     ["playerWalk2", "player_walk_02.png", null],
     ["playerWalk3", "player_walk_03.png", null],
     ["playerWalk4", "player_walk_04.png", null],
-    ["playerWalk5", "player_walk_05.png", null],
-    ["playerWalk6", "player_walk_06.png", null],
     ["girlA", "girl_a.png", [318, 45, 341, 1411]],
     ["girlB", "girl_b.png", [376, 23, 308, 1485]],
     ["boy", "boy.png", [332, 49, 379, 1439]],

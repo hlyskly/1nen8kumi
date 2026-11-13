@@ -65,7 +65,7 @@
       if (frame === null) { this.resetWalking(); return; }
       if (!this.playing || frame === this.walkFrame) return;
       this.walkFrame = frame;
-      if (frame === 0 || frame === 3) {
+      if (frame === 0 || frame === 2) {
         this.stop(this.step);
         this.step = this.source(frame === 0 ? "footstep1" : "footstep2", AUDIO_VOLUME.footstep);
       }

@@ -120,7 +120,7 @@ function boot(random = () => .1, forced = null, saved = new Map(), endingFixture
 }
 const { LAYOUT } = require(path.join(root, "art.js"));
 const CLASS_IMAGES = new Set(["pillar.png", "door.png", "window.png", "bulletin_board.png", "class_plate.png", "girl_a.png", "girl_b.png", "boy.png"]);
-const PLAYER_IMAGES = new Set(["player_idle.png", ...Array.from({length:6},(_,i)=>`player_walk_${String(i+1).padStart(2,"0")}.png`)]);
+const PLAYER_IMAGES = new Set(["player_idle.png", ...Array.from({length:4},(_,i)=>`player_walk_${String(i+1).padStart(2,"0")}.png`)]);
 const NPC_IMAGES = new Set(["girl_a.png", "girl_b.png", "boy.png", "anomaly_girl_a_facing.png", "anomaly_girl_b_facing.png", "anomaly_boy_facing.png"]);
 function center(i) { return Math.round((i.x + i.width / 2) * 1e8) / 1e8; }
 function visible(i) { return Math.max(i.x, i.x + i.width) > 0 && Math.min(i.x, i.x + i.width) < 960; }
@@ -479,7 +479,7 @@ test("debug controls are hidden normally; closing debug cancels forcing and sele
   assert.equal(app.elements["debug-controls"].hidden, true); assert.equal(app.run.anomaly.id, "dog");
   app.exit(false); assert.equal(app.run.anomaly, null);
 });
-test("six walking frames use 120ms, the same full-image rectangle and fixed foot anchor", () => {
+test("four walking frames use 220ms, the same full-image rectangle and fixed foot anchor", () => {
   const app=boot();app.start();const sprite=()=>app.snapshot().find(i=>PLAYER_IMAGES.has(i.image));
   const idle=sprite(),start=app.run.travelX;
   assert.equal(idle.image,"player_idle.png");assert.equal(idle.source,null);
@@ -490,32 +490,32 @@ test("six walking frames use 120ms, the same full-image rectangle and fixed foot
   }
   assert.equal(idle.height,278.64);assert.equal(idle.y+idle.height*(1470/1600),386);
   app.keydown("ArrowRight");const images=[];
-  for(let i=0;i<7;i++){
-    app.frames(i?6:1);const image=sprite();images.push(image.image);
+  for(let i=0;i<5;i++){
+    app.frames(i?11:1);const image=sprite();images.push(image.image);
     assert.equal(image.source,null,"no frame-specific cropping");
     assert.deepEqual([Math.abs(image.width),image.height,image.y],[idle.width,idle.height,idle.y]);
   }
-  assert.deepEqual(images,[...Array.from({length:6},(_,i)=>`player_walk_${String(i+1).padStart(2,"0")}.png`),"player_walk_01.png"]);
-  assert.equal(app.run.travelX-start,185,"movement remains 250px/sec");
+  assert.deepEqual(images,[...Array.from({length:4},(_,i)=>`player_walk_${String(i+1).padStart(2,"0")}.png`),"player_walk_01.png"]);
+  assert.equal(app.run.travelX-start,225,"movement remains 250px/sec");
   app.keyup("ArrowRight");app.frames();assert.equal(sprite().image,"player_idle.png");
   app.keydown("ArrowLeft");app.frames();assert.equal(sprite().image,"player_walk_01.png");assert.ok(sprite().width<0);
-  app.frames(6);assert.equal(sprite().image,"player_walk_02.png");
+  app.frames(11);assert.equal(sprite().image,"player_walk_02.png");
   app.keyup("ArrowLeft");app.keydown("ArrowRight");app.frames();assert.equal(sprite().image,"player_walk_02.png");assert.ok(sprite().width>0);
   app.win.send("blur");app.frames();assert.equal(sprite().image,"player_idle.png");
 });
 test("animation uses elapsed milliseconds independently of movement delta clamping", () => {
   const a=boot(),b=boot();a.start();b.start();a.keydown("ArrowRight");b.keydown("ArrowRight");
-  a.frames();b.frames();a.frames(9,20);b.frames(1,180);
+  a.frames();b.frames();a.frames(11,20);b.frames(1,220);
   const sprite=app=>app.snapshot().find(i=>PLAYER_IMAGES.has(i.image));
   assert.equal(sprite(a).image,"player_walk_02.png");assert.equal(sprite(b).image,sprite(a).image);
 });
-test("touch shares all six walking frames, reversal and idle on cancellation or simultaneous directions", () => {
+test("touch shares all four walking frames, reversal and idle on cancellation or simultaneous directions", () => {
   const app=boot();app.start();const right=app.elements["right-button"],left=app.elements["left-button"];
   const sprite=()=>app.snapshot().find(i=>PLAYER_IMAGES.has(i.image));
   right.send("pointerdown",{pointerId:1});app.frames();
-  for(let i=1;i<=6;i++){
+  for(let i=1;i<=4;i++){
     const image=sprite();assert.equal(image.image,`player_walk_${String(i).padStart(2,"0")}.png`);assert.ok(image.width>0);
-    assert.equal(image.height,278.64);assert.equal(image.y+image.height*(1470/1600),386);if(i<6)app.frames(6);
+    assert.equal(image.height,278.64);assert.equal(image.y+image.height*(1470/1600),386);if(i<4)app.frames(11);
   }
   left.send("pointerdown",{pointerId:2});app.frames();assert.equal(sprite().image,"player_idle.png");
   right.send("pointerup",{pointerId:1});app.frames();assert.equal(sprite().image,"player_walk_01.png");assert.ok(sprite().width<0);
@@ -697,7 +697,7 @@ test("PC and touch feed the exact displayed walking frame to audio without chang
     const app=boot();app.start();app.audioCalls.length=0;
     if(touch)app.elements["right-button"].send("pointerdown",{pointerId:1});else app.keydown("ArrowRight");
     app.frames();assert.deepEqual(app.audioCalls.at(-1),["updateWalking",0]);
-    for(let i=1;i<6;i++){app.frames(6);assert.deepEqual(app.audioCalls.at(-1),["updateWalking",i]);}
+    for(let i=1;i<4;i++){app.frames(11);assert.deepEqual(app.audioCalls.at(-1),["updateWalking",i]);}
     if(touch)app.elements["right-button"].send("pointerup",{pointerId:1});else app.keyup("ArrowRight");
     app.frames();assert.deepEqual(app.audioCalls.filter(c=>c[0]==="updateWalking").at(-1),["updateWalking",null]);
   }
@@ -707,8 +707,8 @@ test("speed config scales shared walking/footstep timing without changing frame 
     const app=boot(()=>.1,null,new Map(),null,{walkSpeed:multiplier});app.start();app.keydown("ArrowRight");app.frames();
     const sprite=()=>app.snapshot().find(i=>PLAYER_IMAGES.has(i.image)),idle=sprite();
     const start=app.run.travelX;app.frames(1,40);assert.ok(Math.abs((app.run.travelX-start)-10*multiplier)<1e-8);
-    app.frames(1,120/multiplier-40);assert.equal(sprite().image,"player_walk_02.png");
-    app.frames(1,240/multiplier);assert.equal(sprite().image,"player_walk_04.png");
+    app.frames(1,220/multiplier-40);assert.equal(sprite().image,"player_walk_02.png");
+    app.frames(1,440/multiplier);assert.equal(sprite().image,"player_walk_04.png");
     assert.deepEqual(app.audioCalls.filter(c=>c[0]==="updateWalking").at(-1),["updateWalking",3]);
     assert.deepEqual([sprite().height,sprite().width,sprite().y],[idle.height,idle.width,idle.y]);
     app.keyup("ArrowRight");app.frames();assert.equal(sprite().image,"player_idle.png");

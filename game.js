@@ -23,8 +23,8 @@
   let facing = 1;
   let walk = 0; // Elapsed walking seconds; shared by keys and touch.
   let playerMoving = false;
-  const PLAYER_FRAMES = ["playerWalk1", "playerWalk2", "playerWalk3", "playerWalk4", "playerWalk5", "playerWalk6"];
-  const PLAYER_FRAME_SECONDS = .120 / (GAME_CONFIG.walkSpeed > 0 ? GAME_CONFIG.walkSpeed : 1);
+  const PLAYER_FRAMES = ["playerWalk1", "playerWalk2", "playerWalk3", "playerWalk4"];
+  const PLAYER_FRAME_SECONDS = .220 / (GAME_CONFIG.walkSpeed > 0 ? GAME_CONFIG.walkSpeed : 1);
   let lastTime = null;
   const playButtons = [ui["left-button"], ui["up-button"], ui["right-button"]];
   const { SIZES, LAYOUT, ANOMALY_VISUALS, SpriteSet } = SchoolArt;
@@ -369,7 +369,7 @@
       ctx.restore();
       ctx.restore();
     }
-    // All seven aligned 1600x1600 images use this same fixed square.
+    // All five aligned 1600x1600 images use this same fixed square.
     const playerSize = PLAYER_DRAW_SIZE;
     const playerFrame = currentPlayerFrame();
     art.draw(ctx, playerFrame, run.x, SIZES.playerFoot - playerSize.height * SIZES.playerSoleAnchor,

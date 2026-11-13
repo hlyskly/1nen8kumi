@@ -30,9 +30,9 @@ test("six assets preload without an audio context or title playback; start is un
   f.audio.startGameAmbience(); assert.equal(f.sources.length,4);
   const g=fixture();g.audio.unlock();g.audio.startGameAmbience();g.audio.stopGameAmbience();await g.settle();assert.equal(g.sources.length,0);
 });
-test("walk01/walk04 trigger once on frame entry, restart and reversal use the same cycle, idle stops the tail", async () => {
+test("walk01/walk03 trigger once on frame entry, restart and reversal use the same cycle, idle stops the tail", async () => {
   const f=fixture();f.audio.unlock();await f.settle();f.audio.startGameAmbience();
-  for(const frame of [0,0,0,1,2,3,3,4,5,0])f.audio.updateWalking(frame);
+  for(const frame of [0,0,0,1,2,2,3,0])f.audio.updateWalking(frame);
   const steps=f.sources.filter(s=>s.buffer.id.startsWith("footstep"));
   assert.deepEqual(steps.map(s=>s.buffer.id),[FILES.footstep1,FILES.footstep2,FILES.footstep1]);
   assert.ok(steps.every(s=>!s.loop && s.volume.value===.28 && s.startAt===0));
